@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YKS Konu Takip ve Plan Defteri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #E9EDF1;
+    --paper-line: #D2DAE1;
+    --ink: #1E2A3A;
+    --ink-soft: #4B5A6B;
+    --red: #B3392C;
+    --red-soft: #E7C9C3;
+    --green: #3F7350;
+    --green-soft: #CFE0D3;
+    --blue: #2C4A7C;
+    --blue-soft: #D3DDEA;
+    --kraft: #D8C39C;
+    --kraft-dark: #B99F6E;
+    --card: #F5F3EC;
+    --amber: #9C6B1F;
+    --radius-tab: 10px 10px 0 0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, var(--paper-line) 28px),
+      repeating-linear-gradient(90deg, transparent, transparent 27px, var(--paper-line) 28px),
+      var(--paper);
+    min-height:100vh;
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; margin:0; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:28px 20px 80px; }
+
+  header.hero{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:20px;
+    padding-bottom:18px; margin-bottom:22px; border-bottom:2px solid var(--ink);
+    flex-wrap:wrap;
+  }
+  header.hero h1{ font-size:clamp(28px,4vw,42px); line-height:1.05; }
+  header.hero > div:first-child p{ margin:8px 0 0; color:var(--ink-soft); max-width:56ch; font-size:14.5px; }
+
+  .top-right{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+
+  .countdown-box{
+    background:var(--ink); color:var(--paper); border:1px solid var(--ink); padding:12px 16px; min-width:260px;
+  }
+  .cd-label{ font-size:11.5px; text-transform:none; color:var(--kraft); display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+  .cd-label button{ background:none; border:1px solid var(--kraft); color:var(--kraft); font-size:11px; padding:1px 7px; cursor:pointer; }
+  .cd-label button:hover{ background:var(--kraft); color:var(--ink); }
+  .cd-timer{ display:flex; gap:10px; }
+  .cd-unit{ display:flex; flex-direction:column; align-items:center; min-width:38px; }
+  .cd-unit span{ font-family:'Fraunces',serif; font-weight:700; font-size:24px; line-height:1; }
+  .cd-unit small{ font-size:10px; color:var(--kraft); margin-top:3px; }
+  .cd-note{ font-size:10.5px; color:#B7C0CC; margin-top:8px; line-height:1.4; }
+  .cd-edit{ display:flex; gap:6px; margin-top:8px; }
+  .cd-edit input{ font-size:12.5px; padding:4px 6px; border:1px solid var(--kraft); background:#fff; color:var(--ink); }
+  .cd-edit button{ font-size:12px; padding:4px 10px; border:1px solid var(--kraft); background:var(--kraft); color:var(--ink); cursor:pointer; }
+
+  .streak{
+    background:var(--card); border:1px solid var(--paper-line); padding:8px 14px;
+    text-align:right; min-width:150px;
+  }
+  .streak .num{ font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:var(--blue); }
+  .streak .lbl{ font-size:11.5px; color:var(--ink-soft); }
+
+  .exam-tabs{ display:flex; gap:6px; }
+  .exam-tab{
+    font-family:'Fraunces',serif; font-weight:600; font-size:16px;
+    padding:10px 22px 9px; border:1px solid var(--ink); border-bottom:none;
+    background:var(--kraft); color:var(--ink); cursor:pointer; border-radius:var(--radius-tab);
+    position:relative; top:1px;
+  }
+  .exam-tab.active{ background:var(--card); border-bottom:1px solid var(--card); }
+  .exam-tab:not(.active):hover{ background:var(--kraft-dark); }
+
+  .panel{ border:1px solid var(--ink); background:var(--card); padding:22px; }
+
+  .subject-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .chip{
+    font-size:13px; padding:6px 13px; border:1px solid var(--ink-soft); background:transparent;
+    cursor:pointer; color:var(--ink-soft);
+  }
+  .chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .progress-row{ display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  .progress-track{ flex:1; height:8px; background:var(--paper-line); position:relative; }
+  .progress-fill{ height:100%; background:var(--green); transition:width .3s ease; }
+  .progress-text{ font-size:13px; color:var(--ink-soft); white-space:nowrap; }
+
+  .subject-block{ margin-bottom:26px; }
+  .subject-block h3{ font-size:19px; margin-bottom:2px; padding-bottom:6px; border-bottom:1px solid var(--paper-line); display:flex; justify-content:space-between; align-items:baseline; }
+  .subject-block h3 span{ font-family:'Inter',sans-serif; font-weight:500; font-size:12.5px; color:var(--ink-soft); }
+  .subject-block .years-note{ font-size:11.5px; color:var(--ink-soft); margin:5px 0 10px; font-style:italic; }
+
+  .topic-list{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:2px 18px; }
+  .topic-item{ display:flex; align-items:center; gap:8px; padding:6px 2px; border-bottom:1px dashed var(--paper-line); font-size:14px; }
+  .topic-item label{ cursor:pointer; flex:1; }
+  .topic-item.done label{ color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--green); }
+  .topic-item input[type=checkbox]{
+    appearance:none; width:17px; height:17px; border:1.5px solid var(--ink); flex-shrink:0; cursor:pointer;
+    display:grid; place-content:center;
+  }
+  .topic-item input[type=checkbox]:checked{ background:var(--green); border-color:var(--green); }
+  .topic-item input[type=checkbox]:checked::after{ content:"✓"; color:#fff; font-size:12px; line-height:1; }
+  .freq-badge{
+    font-size:11px; font-weight:600; padding:2px 7px; border:1px solid var(--amber); color:var(--amber);
+    white-space:nowrap; flex-shrink:0;
+  }
+  .freq-badge.zero{ color:var(--ink-soft); border-color:var(--paper-line); font-weight:400; }
+  .yt-link{
+    width:20px; height:20px; flex-shrink:0; border:1px solid var(--red); color:var(--red);
+    display:grid; place-content:center; text-decoration:none; font-size:10px; line-height:1;
+  }
+  .yt-link:hover{ background:var(--red); color:#fff; }
+  .weak-btn{
+    width:16px; height:16px; border:1px solid var(--red); background:transparent; color:var(--red);
+    font-size:10px; cursor:pointer; flex-shrink:0; line-height:1;
+  }
+  .weak-btn.on{ background:var(--red); color:#fff; }
+
+  .planner{ margin-top:34px; border:1px solid var(--ink); background:var(--card); padding:24px; position:relative; }
+  .planner::before{
+    content:""; position:absolute; left:0; right:0; top:-1px; height:4px;
+    background:repeating-linear-gradient(90deg, var(--ink) 0 10px, transparent 10px 16px);
+  }
+  .planner h2{ font-size:24px; margin-bottom:6px; }
+  .planner > p{ color:var(--ink-soft); font-size:14px; margin:0 0 18px; max-width:64ch; }
+
+  .form-row{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:16px; }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field label{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  .field input[type=number]{
+    width:110px; padding:8px 10px; border:1px solid var(--ink-soft); background:#fff; font-size:14px; font-family:'Inter',sans-serif;
+  }
+  .weak-summary{ margin-bottom:16px; }
+  .weak-summary .lbl{ font-size:12.5px; color:var(--ink-soft); font-weight:600; margin-bottom:6px; display:block; }
+  .weak-tags{ display:flex; flex-wrap:wrap; gap:6px; min-height:28px; }
+  .weak-tag{ background:var(--red-soft); border:1px solid var(--red); color:var(--red); font-size:12.5px; padding:3px 9px; }
+  .weak-tags .empty{ color:var(--ink-soft); font-size:13px; font-style:italic; border:none; padding:0; background:none; }
+
+  .extra-field{ margin-bottom:18px; }
+  .extra-field label{ font-size:12.5px; color:var(--ink-soft); font-weight:600; display:block; margin-bottom:6px; }
+  .extra-field textarea{
+    width:100%; min-height:70px; padding:10px; border:1px solid var(--ink-soft); font-family:'Inter',sans-serif; font-size:14px; resize:vertical; background:#fff;
+  }
+
+  .gen-btn{
+    font-family:'Fraunces',serif; font-weight:600; font-size:15px; padding:11px 24px;
+    background:var(--ink); color:var(--paper); border:none; cursor:pointer;
+  }
+  .gen-btn:hover{ background:var(--blue); }
+
+  .plan-output{ margin-top:26px; overflow-x:auto; }
+  table.plan-table{ width:100%; border-collapse:collapse; background:#fff; font-size:13.5px; }
+  table.plan-table caption{ text-align:left; font-family:'Fraunces',serif; font-size:15px; margin-bottom:8px; }
+  table.plan-table th{
+    text-align:left; font-family:'Fraunces',serif; font-weight:600; font-size:13px;
+    background:var(--ink); color:var(--paper); padding:9px 12px;
+  }
+  table.plan-table td{ padding:9px 12px; border-bottom:1px solid var(--paper-line); vertical-align:top; }
+  table.plan-table tr.review-row td{ background:var(--red-soft); }
+  table.plan-table tr.review-row td:first-child{ border-left:4px solid var(--red); }
+  table.plan-table tr:not(.review-row) td:first-child{ border-left:4px solid var(--blue); }
+  table.plan-table td.day-cell{ font-family:'Fraunces',serif; font-weight:600; white-space:nowrap; }
+  table.plan-table td.type-cell{ white-space:nowrap; color:var(--ink-soft); font-size:12.5px; }
+  table.plan-table ul{ margin:0; padding-left:16px; }
+  table.plan-table ul li{ margin-bottom:2px; }
+
+  .plan-actions{ display:flex; gap:10px; margin-top:16px; }
+  .plan-actions button{
+    font-size:13px; padding:8px 16px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer;
+  }
+  .plan-actions button:hover{ background:var(--ink); color:var(--paper); }
+
+  .note{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5; }
+  .note a{ color:var(--blue); }
+
+  @media print{
+    body{ background:#fff; }
+    header.hero, .exam-tabs, .subject-chips, .panel:not(.plan-only), .form-row, .weak-summary, .extra-field, .gen-btn, .plan-actions{ display:none !important; }
+    .planner{ border:none; padding:0; }
+  }
+  @media (max-width:600px){
+    .topic-list{ grid-template-columns:1fr; }
+    header.hero{ flex-direction:column; align-items:flex-start; }
+    .top-right{ align-items:flex-start; width:100%; }
+    .countdown-box{ width:100%; }
+    table.plan-table{ font-size:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <h1>YKS Konu Defteri</h1>
+      <p>TYT (2018–2025) ve AYT (2019–2025, Matematik-Geometri 2018–2025) sınavlarında konu başına gerçekten kaç soru çıktığı her konunun yanında yazıyor. ▶ butonu o konuyla ilgili ders anlatım videosu aramasını açar. Bitirdiğini işaretle, zorlandığını 🚩 ile bayrakla — altta bunlardan gün gün bir çizelge çıkar.</p>
+    </div>
+    <div class="top-right">
+      <div class="countdown-box">
+        <div class="cd-label">SINAVA KALAN SÜRE <button id="editDateBtn" title="Sınav tarihini düzenle">✎</button></div>
+        <div class="cd-timer">
+          <div class="cd-unit"><span id="cdDays">--</span><small>gün</small></div>
+          <div class="cd-unit"><span id="cdHours">--</span><small>saat</small></div>
+          <div class="cd-unit"><span id="cdMins">--</span><small>dk</small></div>
+          <div class="cd-unit"><span id="cdSecs">--</span><small>sn</small></div>
+        </div>
+        <div class="cd-edit" id="cdEdit" style="display:none;">
+          <input type="datetime-local" id="examDateInput">
+          <button id="saveDateBtn">Kaydet</button>
+        </div>
+        <div class="cd-note" id="cdNote">Tahmini tarih: 19 Haziran 2027, 10:15 — ÖSYM resmi takvimi henüz açıklamadı, ✎ ile kendi tarihini girebilirsin.</div>
+      </div>
+      <div class="streak">
+        <div class="num" id="overallPct">0%</div>
+        <div class="lbl">genel ilerleme</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="exam-tabs">
+    <button class="exam-tab active" data-exam="TYT">TYT</button>
+    <button class="exam-tab" data-exam="AYT">AYT</button>
+  </div>
+
+  <div class="panel">
+    <div class="subject-chips" id="subjectChips"></div>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="examFill" style="width:0%"></div></div>
+      <div class="progress-text" id="examPct">0 / 0 konu tamamlandı</div>
+    </div>
+    <div id="topicArea"></div>
+  </div>
+
+  <div class="planner">
+    <h2>Çalışma Planı Oluştur</h2>
+    <p>🚩 ile bayrakladığın konular önce sıraya girer (kendi aralarında en çok soru çıkandan az çıkana göre sıralanır), sonra kalan günlere işaretlenmemiş diğer konular soru sıklığına göre yerleştirilir, arada tekrar/deneme günleri olur.</p>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="daysLeft">Sınava kalan gün</label>
+        <input type="number" id="daysLeft" min="1" max="120" value="14">
+      </div>
+      <div class="field">
+        <label for="hoursDay">Günlük çalışma saati</label>
+        <input type="number" id="hoursDay" min="1" max="12" value="3">
+      </div>
+    </div>
+
+    <div class="weak-summary">
+      <span class="lbl">Bayraklanan (zayıf) konular</span>
+      <div class="weak-tags" id="weakTags"><span class="empty">Henüz konu bayraklamadın — listeden 🚩 butonuna tıkla.</span></div>
+    </div>
+
+    <div class="extra-field">
+      <label for="extraNotes">Ek eksiklerin (isteğe bağlı, her satıra bir tane — listede olmayan şeyler de olabilir)</label>
+      <textarea id="extraNotes" placeholder="Örn: paragrafta zaman kaybediyorum&#10;integral uygulamalı sorular"></textarea>
+    </div>
+
+    <button class="gen-btn" id="genPlanBtn">Planı Oluştur</button>
+
+    <div class="plan-output" id="planOutput"></div>
+  </div>
+
+  <p class="note">Soru sayıları, 2018–2025 (AYT'nin çoğu dersinde 2019–2025) yıllarındaki gerçek ÖSYM TYT/AYT sınavlarının konu bazlı dökümüne dayanır (rehberlik servisleri tarafından derlenmiştir); geleceğin kesin tahmini değildir, az sorulan konuları da atlamamak gerekir. ▶ butonları belirli bir hoca ya da kanalı önermez, sadece o konu için YouTube aramasını açar — videoyu izlerken kaynağın güncel müfredata uygunluğunu kendin kontrol et. Sınav tarihi ÖSYM tarafından henüz kesinleştirilmediği için sayaç geçmiş yıllara dayalı bir tahmindir; ✎ ile düzenleyebilirsin. İlerlemen, bayrakların, planın ve sınav tarihin tarayıcında saklanır.</p>
+</div>
+
+<script>
+// [konu, son yıllardaki toplam soru sayısı]
+const DATA = {
+  TYT: {
+    "Türkçe": [["Ses Bilgisi",6],["Dil Bilgisi",25],["Noktalama İşaretleri",14],["Yazım Kuralları",16],["Anlatım Bozukluğu",1],["Paragraf",199],["Cümlede Anlam",32],["Sözcükte Anlam",27]],
+    "Matematik": [["Problemler",95],["Temel Kavramlar",18],["Rasyonel Sayılar",13],["Sayı Basamakları",11],["Kümeler - Kartezyen Çarpım",10],["Fonksiyonlar",10],["Olasılık",9],["Permütasyon - Kombinasyon",9],["Mutlak Değer",9],["Basit Eşitsizlikler",9],["Köklü İfadeler",8],["Üslü İfadeler",7],["Denklem Çözme",5],["Bölünebilme Kuralları",5],["Oran - Orantı",5],["İstatistik",5],["Mantık",4],["OBEB - OKEK",3],["Polinomlar",2],["İşlem",1],["Çarpanlara Ayırma",1],["Modüler Aritmetik",0]],
+    "Geometri": [["Açılar ve Üçgenler",28],["Katı Cisimler",15],["Dikdörtgen",11],["Çokgenler",8],["Yamuk",6],["Analitik Geometri",4],["Kare",4],["Çember - Daire",3],["Eşkenar Dörtgen",2],["Grafik Okuma",0]],
+    "Fizik": [["Optik",11],["Hareket ve Kuvvet",7],["Isı, Sıcaklık ve Genleşme",7],["Elektrik ve Manyetizma",7],["Madde ve Özellikleri",6],["Kaldırma Kuvveti",4],["Dalgalar",5],["Elektrostatik",3],["Basınç",3],["Fizik Bilimine Giriş",2],["İş, Güç ve Enerji",1]],
+    "Kimya": [["Kimya Bilimi",8],["Maddenin Halleri",8],["Kimyasal Türler Arası Etkileşimler",8],["Asit, Baz ve Tuzlar",7],["Karışımlar",7],["Periyodik Tablo",5],["Atomun Yapısı",4],["Kimyasal Hesaplamalar",3],["Kimyanın Temel Kanunları",3],["Kimya Her Yerde",2]],
+    "Biyoloji": [["Canlıların Sınıflandırılması",8],["Hücre Bölünmeleri ve Üreme",8],["Kalıtım",8],["Canlıların Temel Bileşenleri",6],["Hücre ve Organelleri",5],["Ekosistem Ekoloji",5],["Güncel Çevre Sorunları",4],["Canlıların Ortak Özellikleri",3],["Madde Geçişleri",2]],
+    "Tarih": [["Milli Mücadele",8],["İlk ve Orta Çağlarda Türk Dünyası",8],["Türklerin İslamiyet'i Kabulü ve İlk Türk İslam Devletleri",8],["Atatürkçülük ve Türk İnkılabı",5],["Beylikten Devlete Osmanlı",4],["Uluslararası İlişkilerde Denge Stratejisi (1774-1914)",4],["XX. Yüzyıl Başlarında Osmanlı Devleti ve Dünya",2],["Dünya Gücü Osmanlı",1],["İslam Medeniyetinin Doğuşu",1],["Tarih ve Zaman",0],["Değişim Çağında Avrupa ve Osmanlı",0]],
+    "Coğrafya": [["İklim Bilgisi",8],["Nüfus ve Yerleşme",8],["Doğal Afetler",6],["Harita Bilgisi",5],["Bölgeler",5],["İç ve Dış Kuvvetler",4],["Doğa ve İnsan",2],["Dünyanın Şekli ve Hareketleri",1],["Ekonomik Faaliyetler",1],["Coğrafi Konum",0],["Türkiye'nin Yer Şekilleri",0],["Uluslararası Ulaşım Hatları",0]],
+    "Felsefe": [["Bilgi Felsefesi",12],["Ahlak Felsefesi",8],["Felsefe Alanı",7],["Varlık Felsefesi",4],["Siyaset Felsefesi",3],["Din Felsefesi",3],["Bilim Felsefesi",2],["Sanat Felsefesi",1]],
+    "Din Kültürü": [["Bilgi ve İnanç",9],["Hz. Muhammed (S.A.V)",6],["Din ve İslam",4],["İslam ve İbadet",4],["Gençlik ve Değerler",4],["Vahiy ve Akıl",4],["Din, Kültür ve Medeniyet",4],["Allah İnsan İlişkisi",3],["İslam Düşüncesinde Yorumlar, Mezhepler",2]]
+  },
+  AYT: {
+    "Türk Dili ve Edebiyatı": [["Anlam Bilgisi",37],["Divan Edebiyatı",28],["Cumhuriyet Dönemi Türk Edebiyatı",21],["Şiir Bilgisi",19],["Söz Sanatları",11],["Tanzimat Edebiyatı",9],["Halk Edebiyatı",9],["Servetifünun ve Fecriati Edebiyatı",8],["Edebi Akımlar",7],["İslamiyet Öncesi ve Geçiş Dönemi Türk Edebiyatı",7],["Milli Edebiyat",7],["Masal / Fabl / Destan / Halk Hikâyesi",7],["Metinlerin Sınıflandırılması",1]],
+    "Matematik": [["Trigonometri",34],["İntegral",23],["Permütasyon - Kombinasyon - Olasılık - Binom",21],["Temel Kavramlar",20],["Türev",18],["Fonksiyonlar",17],["Logaritma",17],["Polinomlar",11],["Limit",11],["Diziler",10],["2. Dereceden Denklemler",8],["Mantık",8],["Kümeler ve Kartezyen Çarpım",8],["Parabol",5],["Sayı Basamakları",5],["Basit Eşitsizlikler",6],["Karmaşık Sayılar",4],["Üslü Sayılar",4],["Mutlak Değer",4],["EBOB - EKOK",3],["Çarpanlara Ayırma",2],["Bölme ve Bölünebilme",2],["Köklü Sayılar",1]],
+    "Geometri": [["Çember ve Daire",16],["Doğrunun Analitiği",12],["Katı Cisimler",9],["Noktanın Analitiği",7],["Doğruda ve Üçgende Açı",6],["Dönüşüm Geometrisi",6],["Çemberin Analitiği",6],["Özel Üçgenler",4],["Çokgenler",4],["Üçgende Alan ve Benzerlik",2],["Özel Dörtgenler",2],["Açı Kenar Bağlantıları",1],["Açıortay ve Kenarortay",0]],
+    "Fizik": [["Düzgün Çembersel Hareket",8],["Manyetizma ve Elektromanyetik İndüklenme",7],["Basit Harmonik Hareket",7],["Dalgalarda Kırınım, Girişim ve Doppler",6],["Newton'un Hareket Yasaları",6],["Alternatif Akım",5],["İtme ve Çizgisel Momentum",5],["İki Boyutta Hareket",5],["Elektriksel Potansiyel",4],["Transformatörler",3],["Bağıl Hareket",3],["Bir Boyutta Sabit İvmeli Hareket",3],["Kepler Kanunları",3],["Radyoaktivite",3],["Fotoelektrik Olayı",3],["Görüntüleme Teknolojileri",3],["Düzgün Elektrik Alan ve Sığa",2],["Enerji ve Hareket",2],["Denge ve Denge Şartları",2],["Basit Makineler",2],["Dönerek Öteleme Hareketi",2],["Kütle Çekim Kuvveti",2],["Elektromanyetik Dalgalar",2],["Büyük Patlama ve Evrenin Oluşumu",2],["Vektörler",1],["Tork",1],["Elektriksel Kuvvet ve Elektrik Alan",1],["Açısal Momentum",1],["Özel Görelilik",1],["Compton Saçılması ve De Broglie",1],["Süper İletkenler",1],["Lazer Işınları",1]],
+    "Kimya": [["Sulu Çözelti Dengeleri",8],["Atomun Kuantum Modeli",7],["Derişim Birimleri",7],["Elektrot Potansiyelleri",7],["Hidrokarbonlar",6],["Elektroliz",5],["Hibritleşme - Molekül Geometrisi",5],["Gazlarda Kinetik Teori",4],["Koligatif Özellikler",4],["Tepkime Isılarının Toplanabilirliği",4],["Tepkime Hızları",4],["Karboksilik Asitler",4],["Tepkime Hızını Etkileyen Faktörler",3],["Dengeyi Etkileyen Faktörler",3],["Elektrotlar ve Elektrokimyasal Hücreler",3],["Gazların Özellikleri ve Gaz Yasaları",2],["İdeal Gaz Yasası",2],["Gaz Karışımları",2],["Oluşum Entalpisi",2],["Kimyasal Denge",2],["Doğada Karbon",2],["Alkoller - Eterler",2],["Yükseltgenme Basamakları",1],["Çözünürlük",1],["Tepkimelerde Isı Değişimi",1],["İndirgenme - Yükseltgenme Tepkimelerinde Elektrik Akımı",1],["Korozyon",1],["Basit Formül ve Molekül Formülü",1],["Fonksiyonel Gruplar",1],["Karbonil Bileşikleri",1],["Esterler",1]],
+    "Biyoloji": [["Genden Proteine",14],["Komünite ve Popülasyon Ekolojisi",11],["Bitki Biyolojisi",11],["Denetleyici ve Düzenleyici Sistem, Duyu Organları",10],["Dolaşım Sistemi",7],["Solunum Sistemi",6],["Fotosentez ve Kemosentez",6],["Sindirim Sistemi",5],["Üriner Sistem",5],["Hücresel Solunum",5],["Canlılar ve Çevre",4],["Canlılık ve Enerji",3],["Destek ve Hareket Sistemi",2],["Üreme Sistemi ve Embriyonik Gelişim",2]],
+    "Tarih": [["Milli Mücadele",27],["XX. Yüzyıl Başlarında Osmanlı Devleti ve Dünya",15],["İlk ve Orta Çağlarda Türk Dünyası",11],["Atatürkçülük ve Türk İnkılabı",10],["Türklerin İslamiyet'i Kabulü ve İlk Türk İslam Devletleri",9],["İslam Medeniyetinin Doğuşu",7],["Beylikten Devlete Osmanlı",7],["Tarih ve Zaman",6],["İnsanlığın İlk Dönemleri",6],["Değişim Çağında Avrupa ve Osmanlı",6],["Uluslararası İlişkilerde Denge Stratejisi (1774-1912)",5],["Dünya Gücü Osmanlı",4],["Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti",4],["Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi",3],["Devrimler Çağında Değişen Devlet - Toplum İlişkileri",3],["II. Dünya Savaşı Sürecinde - Sonrasında Türkiye ve Dünya",3],["Devletleşme Sürecinde Savaşçılar ve Askerler",2],["Sultan ve Osmanlı Merkez Teşkilatı",2],["Sermaye ve Emek",2],["İki Savaş Arasındaki Dönemde Türkiye ve Dünya",1],["Orta Çağ'da Dünya",0],["XXI. Yüzyılın Eşiğinde Türkiye ve Dünya",0]],
+    "Coğrafya": [["Çevre Sorunları ve Geri Dönüşüm",14],["Türkiye'de Tarım, Sanayi, Maden ve Enerji Kaynakları",10],["Ekosistemlerin Özellikleri ve İşleyişi",10],["Şehirler ve Kırsal Yerleşmeler",9],["Ekonomi, Şehirleşme ve Göç",9],["Ekstrem Doğa Olayları",8],["Türkiye'de Turizm",8],["Küresel İklim Değişikliği ve Doğa Olaylarının Geleceği",7],["Kültür Bölgeleri ve Türk Kültürü",7],["Dünyada Doğal Kaynak ve Ekonomi",6],["Küreselleşen Dünya",6],["Uluslararası Örgütler",6],["Nüfus Politikaları ve Projeksiyonları",5],["İşlevsel Bölge ve Kalkınma Projeleri",5],["Çevre Sorunlarının Çözümüne Yönelik Yaklaşımlar",5],["Ülkeler Arası Etkileşim",4],["Hizmet Sektörünün Ekonomideki Yeri ve Ulaşım",2],["Jeopolitik Konum",2],["Türkiye'de ve Dünyada Ticaret",1]],
+    "Felsefe Grubu": [["Mantığa Giriş",8],["Klasik Mantık",8],["Bilgi Felsefesi",7],["Öğrenme, Bellek, Düşünme",6],["Sosyolojiye Giriş",6],["Psikolojinin Temel Süreçleri",6],["Varlık Felsefesi",5],["Psikoloji Bilimini Tanıyalım",5],["Mantık ve Dil",4],["Ruh Sağlığının Temelleri",4],["Birey ve Toplum",4],["Toplumsal Değişme ve Gelişme",4],["Ahlak Felsefesi",3],["20. Yüzyıl Felsefesi",3],["Toplumsal Kurumlar",3],["Sanat Felsefesi",2],["Din Felsefesi",2],["Toplumsal Yapı",2],["Toplum ve Kültür",2],["Felsefe ve Bilim",0]],
+    "Din Kültürü": [["İslam ve Bilim",10],["Kuran'a Göre Hz. Muhammed",6],["İslam Düşüncesinde Tasavvufi Yorumlar ve Mezhepler",6],["Kuran'da Bazı Kavramlar",5],["İnançla İlgili Meseleler",4],["Anadolu'da İslam",3],["Allah, İnsan İlişkisi",2],["Kuran'dan Mesajlar",2],["Yaşayan Dinler",2],["İslamda İbadet",1],["Güncel Dini Meseleler",1]]
+  }
+};
+
+const YEARS = {
+  TYT: { "Türkçe":"2018–2025", "Matematik":"2018–2025", "Geometri":"2018–2025", "Fizik":"2018–2025", "Kimya":"2018–2025", "Biyoloji":"2018–2025", "Tarih":"2018–2025", "Coğrafya":"2018–2025", "Felsefe":"2018–2025", "Din Kültürü":"2018–2025" },
+  AYT: { "Türk Dili ve Edebiyatı":"2019–2025", "Matematik":"2018–2025", "Geometri":"2018–2025", "Fizik":"2019–2025", "Kimya":"2019–2025", "Biyoloji":"2019–2025", "Tarih":"2019–2025", "Coğrafya":"2019–2025", "Felsefe Grubu":"2019–2025", "Din Kültürü":"2019–2025" }
+};
+
+let state = { done:{}, weak:{} };
+let currentExam = "TYT";
+let activeSubject = null;
+
+function topicId(exam, subject, topic){ return exam+"::"+subject+"::"+topic; }
+function ytSearchUrl(exam, subject, topic){
+  const q = `${exam} ${subject} ${topic} konu anlatımı`;
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+}
+
+async function loadState(){
+  try{ const d = await window.storage.get('yks-done', false); if(d) state.done = JSON.parse(d.value); }catch(e){}
+  try{ const w = await window.storage.get('yks-weak', false); if(w) state.weak = JSON.parse(w.value); }catch(e){}
+}
+async function saveDone(){ try{ await window.storage.set('yks-done', JSON.stringify(state.done), false); }catch(e){ console.error(e); } }
+async function saveWeak(){ try{ await window.storage.set('yks-weak', JSON.stringify(state.weak), false); }catch(e){ console.error(e); } }
+
+function allSubjects(exam){ return Object.keys(DATA[exam]); }
+
+function renderChips(){
+  const wrap = document.getElementById('subjectChips');
+  wrap.innerHTML = '';
+  const subjects = allSubjects(currentExam);
+  if(!activeSubject || !subjects.includes(activeSubject)) activeSubject = "__ALL__";
+  const allChip = document.createElement('button');
+  allChip.className = 'chip' + (activeSubject === "__ALL__" ? ' active' : '');
+  allChip.textContent = 'Tümü';
+  allChip.onclick = () => { activeSubject = "__ALL__"; renderChips(); renderTopics(); };
+  wrap.appendChild(allChip);
+  subjects.forEach(s=>{
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (activeSubject === s ? ' active' : '');
+    chip.textContent = s;
+    chip.onclick = () => { activeSubject = s; renderChips(); renderTopics(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function renderTopics(){
+  const area = document.getElementById('topicArea');
+  area.innerHTML = '';
+  const subjects = activeSubject === "__ALL__" ? allSubjects(currentExam) : [activeSubject];
+  subjects.forEach(subject=>{
+    const topics = DATA[currentExam][subject];
+    const block = document.createElement('div');
+    block.className = 'subject-block';
+    const doneCount = topics.filter(t=>state.done[topicId(currentExam,subject,t[0])]).length;
+    block.innerHTML = `<h3>${subject} <span>${doneCount}/${topics.length}</span></h3><div class="years-note">${YEARS[currentExam][subject]} arası çıkmış sorulara göre soru sayıları</div>`;
+    const ul = document.createElement('ul');
+    ul.className = 'topic-list';
+    topics.forEach(([t,count])=>{
+      const id = topicId(currentExam,subject,t);
+      const li = document.createElement('li');
+      li.className = 'topic-item' + (state.done[id] ? ' done' : '');
+      const safeId = 'cb_'+btoa(unescape(encodeURIComponent(id))).replace(/=/g,'');
+      li.innerHTML = `
+        <input type="checkbox" id="${safeId}" ${state.done[id]?'checked':''}>
+        <label for="${safeId}">${t}</label>
+        <span class="freq-badge ${count===0?'zero':''}">${count} soru</span>
+        <a class="yt-link" href="${ytSearchUrl(currentExam,subject,t)}" target="_blank" rel="noopener" title="YouTube'da konu anlatımı ara">▶</a>
+        <button class="weak-btn ${state.weak[id]?'on':''}" title="Zayıf konu olarak işaretle" data-id="${id}">🚩</button>
+      `;
+      const cb = li.querySelector('input');
+      cb.onchange = ()=>{ state.done[id] = cb.checked; li.classList.toggle('done', cb.checked); saveDone(); updateProgress(); };
+      const wb = li.querySelector('.weak-btn');
+      wb.onclick = ()=>{ state.weak[id] = !state.weak[id]; wb.classList.toggle('on', state.weak[id]); saveWeak(); renderWeakTags(); };
+      ul.appendChild(li);
+    });
+    block.appendChild(ul);
+    area.appendChild(block);
+  });
+  updateProgress();
+  renderWeakTags();
+}
+
+function updateProgress(){
+  const subjects = allSubjects(currentExam);
+  let total=0, done=0;
+  subjects.forEach(s=>{
+    DATA[currentExam][s].forEach(([t])=>{ total++; if(state.done[topicId(currentExam,s,t)]) done++; });
+  });
+  document.getElementById('examFill').style.width = total? Math.round(done/total*100)+'%' : '0%';
+  document.getElementById('examPct').textContent = `${done} / ${total} konu tamamlandı`;
+
+  let gTotal=0, gDone=0;
+  ['TYT','AYT'].forEach(ex=>{
+    allSubjects(ex).forEach(s=>{
+      DATA[ex][s].forEach(([t])=>{ gTotal++; if(state.done[topicId(ex,s,t)]) gDone++; });
+    });
+  });
+  document.getElementById('overallPct').textContent = gTotal? Math.round(gDone/gTotal*100)+'%' : '0%';
+}
+
+function renderWeakTags(){
+  const wrap = document.getElementById('weakTags');
+  const ids = Object.keys(state.weak).filter(id=>state.weak[id]);
+  if(ids.length===0){ wrap.innerHTML = '<span class="empty">Henüz konu bayraklamadın — listeden 🚩 butonuna tıkla.</span>'; return; }
+  wrap.innerHTML = ids.map(id=>{
+    const parts = id.split('::');
+    return `<span class="weak-tag">${parts[2]} <small style="opacity:.7">(${parts[0]})</small></span>`;
+  }).join('');
+}
+
+document.querySelectorAll('.exam-tab').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('.exam-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentExam = btn.dataset.exam;
+    activeSubject = "__ALL__";
+    renderChips(); renderTopics();
+  };
+});
+
+function findCount(ex, subject, topicName){
+  const arr = DATA[ex][subject];
+  const hit = arr.find(([t])=>t===topicName);
+  return hit ? hit[1] : 0;
+}
+
+function generatePlan(){
+  const days = Math.max(1, parseInt(document.getElementById('daysLeft').value)||1);
+  const hours = Math.max(1, parseInt(document.getElementById('hoursDay').value)||1);
+  const extra = document.getElementById('extraNotes').value.split('\n').map(s=>s.trim()).filter(Boolean);
+
+  const weakEntries = Object.keys(state.weak).filter(id=>state.weak[id]).map(id=>{
+    const p = id.split('::');
+    return { label: `${p[2]} (${p[0]} ${p[1]})`, count: findCount(p[0],p[1],p[2]) };
+  }).sort((a,b)=>b.count-a.count).map(e=>e.label);
+
+  const unfinishedEntries = [];
+  ['TYT','AYT'].forEach(ex=>{
+    allSubjects(ex).forEach(s=>{
+      DATA[ex][s].forEach(([t,count])=>{
+        const id = topicId(ex,s,t);
+        if(!state.done[id] && !state.weak[id]) unfinishedEntries.push({ label:`${t} (${ex} ${s})`, count });
+      });
+    });
+  });
+  unfinishedEntries.sort((a,b)=>b.count-a.count);
+  const unfinished = unfinishedEntries.map(e=>e.label);
+
+  const queue = [...weakEntries, ...extra, ...unfinished];
+  const topicsPerDay = Math.max(1, Math.floor(hours / 1.5));
+
+  const plan = [];
+  let qi = 0;
+  for(let d=1; d<=days; d++){
+    const isReviewDay = (d % 6 === 0) || (d === days);
+    if(isReviewDay){
+      plan.push({ day:d, review:true, items: d===days ? ['Genel tekrar','Kısa süreli, yüksek tempolu son kontrol — yeni konu yok'] : ['Deneme sınavı (TYT veya AYT)','Yanlışların analizi ve o konuların tekrarı'] });
+    } else {
+      const items = [];
+      for(let k=0; k<topicsPerDay && qi<queue.length; k++){ items.push(queue[qi]); qi++; }
+      if(items.length===0) items.push('Genel tekrar + soru çözümü (konular tamamlandı 🎉)');
+      items.push('Bitirdiğin her konudan 15-20 soru çöz, yanlışları not al');
+      plan.push({ day:d, review:false, items });
+    }
+  }
+  return plan;
+}
+
+function renderPlan(plan){
+  const out = document.getElementById('planOutput');
+  out.innerHTML = '';
+  const table = document.createElement('table');
+  table.className = 'plan-table';
+  table.innerHTML = `
+    <caption>Günlük Çalışma Çizelgesi</caption>
+    <thead><tr><th>Gün</th><th>Tür</th><th>Yapılacaklar</th></tr></thead>
+    <tbody>
+      ${plan.map(p=>`
+        <tr class="${p.review?'review-row':''}">
+          <td class="day-cell">${p.day}. Gün</td>
+          <td class="type-cell">${p.review?'Tekrar / Deneme':'Konu Çalışması'}</td>
+          <td><ul>${p.items.map(i=>`<li>${i}</li>`).join('')}</ul></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+  out.appendChild(table);
+  const actions = document.createElement('div');
+  actions.className = 'plan-actions';
+  actions.innerHTML = `<button id="printPlan">Yazdır / PDF olarak kaydet</button>`;
+  out.appendChild(actions);
+  document.getElementById('printPlan').onclick = ()=>window.print();
+}
+
+document.getElementById('genPlanBtn').onclick = async ()=>{
+  const plan = generatePlan();
+  renderPlan(plan);
+  try{ await window.storage.set('yks-plan', JSON.stringify(plan), false); }catch(e){}
+};
+
+// ---- Countdown ----
+const DEFAULT_EXAM_DATE = "2027-06-19T10:15:00";
+let examDate = new Date(DEFAULT_EXAM_DATE);
+let usingDefaultDate = true;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function tickCountdown(){
+  const now = new Date();
+  let diff = examDate.getTime() - now.getTime();
+  if(diff < 0) diff = 0;
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff / (1000*60*60)) % 24);
+  const mins = Math.floor((diff / (1000*60)) % 60);
+  const secs = Math.floor((diff / 1000) % 60);
+  document.getElementById('cdDays').textContent = days;
+  document.getElementById('cdHours').textContent = pad(hours);
+  document.getElementById('cdMins').textContent = pad(mins);
+  document.getElementById('cdSecs').textContent = pad(secs);
+}
+
+function toLocalInputValue(d){
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  return local.toISOString().slice(0,16);
+}
+
+document.getElementById('editDateBtn').onclick = ()=>{
+  const box = document.getElementById('cdEdit');
+  box.style.display = box.style.display==='none' ? 'flex' : 'none';
+  document.getElementById('examDateInput').value = toLocalInputValue(examDate);
+};
+document.getElementById('saveDateBtn').onclick = async ()=>{
+  const val = document.getElementById('examDateInput').value;
+  if(!val) return;
+  examDate = new Date(val);
+  usingDefaultDate = false;
+  document.getElementById('cdNote').textContent = 'Kendi belirlediğin sınav tarihine göre sayıyor.';
+  document.getElementById('cdEdit').style.display = 'none';
+  tickCountdown();
+  try{ await window.storage.set('yks-exam-date', examDate.toISOString(), false); }catch(e){}
+};
+
+(async function init(){
+  await loadState();
+  renderChips();
+  renderTopics();
+  try{
+    const p = await window.storage.get('yks-plan', false);
+    if(p) renderPlan(JSON.parse(p.value));
+  }catch(e){}
+  try{
+    const dstored = await window.storage.get('yks-exam-date', false);
+    if(dstored){
+      examDate = new Date(dstored.value);
+      usingDefaultDate = false;
+      document.getElementById('cdNote').textContent = 'Kendi belirlediğin sınav tarihine göre sayıyor.';
+    }
+  }catch(e){}
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+})();
+</script>
+</body>
+</html>
