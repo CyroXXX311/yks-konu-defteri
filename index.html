@@ -63,12 +63,18 @@
   .cd-edit input{ font-size:12.5px; padding:4px 6px; border:1px solid var(--kraft); background:#fff; color:var(--ink); }
   .cd-edit button{ font-size:12px; padding:4px 10px; border:1px solid var(--kraft); background:var(--kraft); color:var(--ink); cursor:pointer; }
 
+  .streak-row{ display:flex; gap:8px; }
   .streak{
     background:var(--card); border:1px solid var(--paper-line); padding:8px 14px;
-    text-align:right; min-width:150px;
+    text-align:right; min-width:110px;
   }
-  .streak .num{ font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:var(--blue); }
-  .streak .lbl{ font-size:11.5px; color:var(--ink-soft); }
+  .streak .num{ font-family:'Fraunces',serif; font-size:22px; font-weight:700; color:var(--blue); }
+  .streak .lbl{ font-size:11px; color:var(--ink-soft); }
+
+  .week-summary{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+  .week-stat{ flex:1; min-width:170px; background:var(--card); border:1px solid var(--paper-line); border-left:4px solid var(--blue); padding:12px 16px; }
+  .week-stat .num{ font-family:'Fraunces',serif; font-size:26px; font-weight:700; color:var(--ink); }
+  .week-stat .lbl{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
 
   .exam-tabs{ display:flex; gap:6px; }
   .exam-tab{
@@ -182,6 +188,29 @@
   .note{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5; }
   .note a{ color:var(--blue); }
 
+  table.plan-table tr.today-row td{ background:var(--green-soft) !important; }
+  table.plan-table tr.today-row td:first-child{ border-left:4px solid var(--green) !important; }
+  .today-tag{ font-size:10.5px; background:var(--green); color:#fff; padding:1px 6px; margin-left:6px; }
+
+  .deneme-panel{ margin-top:34px; border:1px solid var(--ink); background:var(--card); padding:24px; }
+  .deneme-panel h2{ font-size:24px; margin-bottom:6px; }
+  .deneme-panel > p{ color:var(--ink-soft); font-size:14px; margin:0 0 18px; max-width:64ch; }
+  .deneme-form{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px; }
+  .deneme-form .field input{ padding:8px 10px; border:1px solid var(--ink-soft); background:#fff; font-size:14px; font-family:'Inter',sans-serif; width:130px; }
+  .deneme-add-btn{ font-size:13px; padding:9px 18px; border:none; background:var(--ink); color:var(--paper); cursor:pointer; font-family:'Fraunces',serif; font-weight:600; }
+  .deneme-add-btn:hover{ background:var(--blue); }
+  .deneme-empty{ font-size:13.5px; color:var(--ink-soft); font-style:italic; margin-bottom:16px; }
+  table.deneme-table{ width:100%; border-collapse:collapse; background:#fff; font-size:13.5px; margin-bottom:24px; }
+  table.deneme-table th{ text-align:left; font-family:'Fraunces',serif; font-weight:600; font-size:13px; background:var(--ink); color:var(--paper); padding:8px 12px; }
+  table.deneme-table td{ padding:7px 12px; border-bottom:1px solid var(--paper-line); }
+  table.deneme-table td.del-cell{ text-align:right; }
+  table.deneme-table button.del-btn{ border:1px solid var(--red); color:var(--red); background:none; font-size:11px; padding:2px 8px; cursor:pointer; }
+  table.deneme-table button.del-btn:hover{ background:var(--red); color:#fff; }
+  .chart-wrap{ background:#fff; border:1px solid var(--paper-line); padding:16px; }
+  .chart-legend{ display:flex; gap:16px; font-size:12.5px; margin-bottom:8px; }
+  .chart-legend span{ display:flex; align-items:center; gap:5px; }
+  .chart-legend i{ width:12px; height:3px; display:inline-block; }
+
   @media print{
     body{ background:#fff; }
     header.hero, .exam-tabs, .subject-chips, .panel:not(.plan-only), .form-row, .weak-summary, .extra-field, .gen-btn, .plan-actions{ display:none !important; }
@@ -219,19 +248,28 @@
         </div>
         <div class="cd-note" id="cdNote">Tahmini tarih: 19 Haziran 2027, 10:15 — ÖSYM resmi takvimi henüz açıklamadı, ✎ ile kendi tarihini girebilirsin.</div>
       </div>
-      <div class="streak">
-        <div class="num" id="overallPct">0%</div>
-        <div class="lbl">genel ilerleme</div>
+      <div class="streak-row">
+        <div class="streak">
+          <div class="num" id="overallPct">0%</div>
+          <div class="lbl">genel ilerleme</div>
+        </div>
+        <div class="streak">
+          <div class="num" id="streakNum">0 🔥</div>
+          <div class="lbl">gün serisi</div>
+        </div>
       </div>
     </div>
   </header>
 
+  <div class="week-summary" id="weekSummary"></div>
+
   <div class="exam-tabs">
     <button class="exam-tab active" data-exam="TYT">TYT</button>
     <button class="exam-tab" data-exam="AYT">AYT</button>
+    <button class="exam-tab" data-exam="DENEME">Denemeler</button>
   </div>
 
-  <div class="panel">
+  <div id="topicPanel" class="panel">
     <div class="subject-chips" id="subjectChips"></div>
     <div class="progress-row">
       <div class="progress-track"><div class="progress-fill" id="examFill" style="width:0%"></div></div>
@@ -240,7 +278,7 @@
     <div id="topicArea"></div>
   </div>
 
-  <div class="planner">
+  <div class="planner" id="plannerPanel">
     <h2>Çalışma Planı Oluştur</h2>
     <p>🚩 ile bayrakladığın konular önce sıraya girer (kendi aralarında en çok soru çıkandan az çıkana göre sıralanır), sonra kalan günlere işaretlenmemiş diğer konular soru sıklığına göre yerleştirilir, arada tekrar/deneme günleri olur.</p>
 
@@ -270,7 +308,26 @@
     <div class="plan-output" id="planOutput"></div>
   </div>
 
-  <p class="note">Soru sayıları, 2018–2025 (AYT'nin çoğu dersinde 2019–2025) yıllarındaki gerçek ÖSYM TYT/AYT sınavlarının konu bazlı dökümüne dayanır (rehberlik servisleri tarafından derlenmiştir); geleceğin kesin tahmini değildir, az sorulan konuları da atlamamak gerekir. ▶ butonları belirli bir hoca ya da kanalı önermez, sadece o konu için YouTube aramasını açar — videoyu izlerken kaynağın güncel müfredata uygunluğunu kendin kontrol et. Sınav tarihi ÖSYM tarafından henüz kesinleştirilmediği için sayaç geçmiş yıllara dayalı bir tahmindir; ✎ ile düzenleyebilirsin. İlerlemen, bayrakların, planın ve sınav tarihin tarayıcında saklanır.</p>
+  <div class="deneme-panel" id="denemePanel" style="display:none;">
+    <h2>Deneme Takibi</h2>
+    <p>Her denemeden sonra netini gir — TYT ve AYT denemeleri ayrı ayrı, kendi çizelgesi ve kendi grafiğiyle takip edilir.</p>
+
+    <div class="subject-chips" id="denemeSubTabs">
+      <button class="chip active" data-d="TYT">TYT Denemeleri</button>
+      <button class="chip" data-d="AYT">AYT Denemeleri</button>
+    </div>
+
+    <div class="deneme-form">
+      <div class="field"><label for="denemeDate">Tarih</label><input type="date" id="denemeDate"></div>
+      <div class="field"><label id="denemeNetLabel" for="denemeNet">TYT Net</label><input type="number" step="0.25" min="0" max="120" id="denemeNet" placeholder="örn. 78.5"></div>
+      <button class="deneme-add-btn" id="addDenemeBtn">Ekle</button>
+    </div>
+
+    <div id="denemeTableWrap"></div>
+    <div id="denemeChartWrap"></div>
+  </div>
+
+  <p class="note">Soru sayıları, 2018–2025 (AYT'nin çoğu dersinde 2019–2025) yıllarındaki gerçek ÖSYM TYT/AYT sınavlarının konu bazlı dökümüne dayanır (rehberlik servisleri tarafından derlenmiştir); geleceğin kesin tahmini değildir, az sorulan konuları da atlamamak gerekir. ▶ butonları belirli bir hoca ya da kanalı önermez, sadece o konu için YouTube aramasını açar — videoyu izlerken kaynağın güncel müfredata uygunluğunu kendin kontrol et. Sınav tarihi ÖSYM tarafından henüz kesinleştirilmediği için sayaç geçmiş yıllara dayalı bir tahmindir; ✎ ile düzenleyebilirsin. İlerlemen, bayrakların, planın, deneme sonuçların, gün serin ve sınav tarihin tarayıcında saklanır. Plan tablosunda bugüne denk gelen gün otomatik olarak yeşille işaretlenir.</p>
 </div>
 
 <script>
@@ -307,9 +364,58 @@ const YEARS = {
   AYT: { "Türk Dili ve Edebiyatı":"2019–2025", "Matematik":"2018–2025", "Geometri":"2018–2025", "Fizik":"2019–2025", "Kimya":"2019–2025", "Biyoloji":"2019–2025", "Tarih":"2019–2025", "Coğrafya":"2019–2025", "Felsefe Grubu":"2019–2025", "Din Kültürü":"2019–2025" }
 };
 
-let state = { done:{}, weak:{} };
+let state = { done:{}, weak:{}, doneAt:{}, activity:[] };
 let currentExam = "TYT";
 let activeSubject = null;
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function last7Set(){
+  const s = new Set();
+  for(let i=0;i<7;i++){
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    s.add(d.toISOString().slice(0,10));
+  }
+  return s;
+}
+async function markActivity(){
+  const t = todayStr();
+  if(!state.activity.includes(t)){
+    state.activity.push(t);
+    try{ await window.storage.set('yks-activity', JSON.stringify(state.activity), false); }catch(e){}
+  }
+  updateStreakUI();
+  renderWeekSummary();
+}
+function computeStreak(){
+  const set = new Set(state.activity);
+  let cursor = new Date();
+  if(!set.has(cursor.toISOString().slice(0,10))) cursor.setDate(cursor.getDate()-1);
+  let streak = 0;
+  while(set.has(cursor.toISOString().slice(0,10))){
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return streak;
+}
+function updateStreakUI(){
+  document.getElementById('streakNum').textContent = computeStreak() + ' 🔥';
+}
+function renderWeekSummary(){
+  const wrap = document.getElementById('weekSummary');
+  const last7 = last7Set();
+  const completed = Object.values(state.doneAt).filter(d=>last7.has(d)).length;
+  const activeDays = state.activity.filter(d=>last7.has(d)).length;
+  let denemeCount = 0;
+  ['TYT','AYT'].forEach(ex=>{
+    (denemeler[ex]||[]).forEach(row=>{ if(last7.has(row.date)) denemeCount++; });
+  });
+  wrap.innerHTML = `
+    <div class="week-stat"><div class="num">${completed}</div><div class="lbl">Bu hafta tamamlanan konu</div></div>
+    <div class="week-stat"><div class="num">${activeDays} / 7</div><div class="lbl">Bu hafta aktif olunan gün</div></div>
+    <div class="week-stat"><div class="num">${denemeCount}</div><div class="lbl">Bu hafta girilen deneme</div></div>
+  `;
+}
 
 function topicId(exam, subject, topic){ return exam+"::"+subject+"::"+topic; }
 function ytSearchUrl(exam, subject, topic){
@@ -320,9 +426,12 @@ function ytSearchUrl(exam, subject, topic){
 async function loadState(){
   try{ const d = await window.storage.get('yks-done', false); if(d) state.done = JSON.parse(d.value); }catch(e){}
   try{ const w = await window.storage.get('yks-weak', false); if(w) state.weak = JSON.parse(w.value); }catch(e){}
+  try{ const da = await window.storage.get('yks-doneat', false); if(da) state.doneAt = JSON.parse(da.value); }catch(e){}
+  try{ const ac = await window.storage.get('yks-activity', false); if(ac) state.activity = JSON.parse(ac.value); }catch(e){}
 }
 async function saveDone(){ try{ await window.storage.set('yks-done', JSON.stringify(state.done), false); }catch(e){ console.error(e); } }
 async function saveWeak(){ try{ await window.storage.set('yks-weak', JSON.stringify(state.weak), false); }catch(e){ console.error(e); } }
+async function saveDoneAt(){ try{ await window.storage.set('yks-doneat', JSON.stringify(state.doneAt), false); }catch(e){ console.error(e); } }
 
 function allSubjects(exam){ return Object.keys(DATA[exam]); }
 
@@ -370,9 +479,14 @@ function renderTopics(){
         <button class="weak-btn ${state.weak[id]?'on':''}" title="Zayıf konu olarak işaretle" data-id="${id}">🚩</button>
       `;
       const cb = li.querySelector('input');
-      cb.onchange = ()=>{ state.done[id] = cb.checked; li.classList.toggle('done', cb.checked); saveDone(); updateProgress(); };
+      cb.onchange = ()=>{
+        state.done[id] = cb.checked;
+        li.classList.toggle('done', cb.checked);
+        if(cb.checked){ state.doneAt[id] = todayStr(); markActivity(); } else { delete state.doneAt[id]; renderWeekSummary(); }
+        saveDone(); saveDoneAt(); updateProgress();
+      };
       const wb = li.querySelector('.weak-btn');
-      wb.onclick = ()=>{ state.weak[id] = !state.weak[id]; wb.classList.toggle('on', state.weak[id]); saveWeak(); renderWeakTags(); };
+      wb.onclick = ()=>{ state.weak[id] = !state.weak[id]; wb.classList.toggle('on', state.weak[id]); saveWeak(); renderWeakTags(); if(state.weak[id]) markActivity(); };
       ul.appendChild(li);
     });
     block.appendChild(ul);
@@ -415,8 +529,17 @@ document.querySelectorAll('.exam-tab').forEach(btn=>{
     document.querySelectorAll('.exam-tab').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentExam = btn.dataset.exam;
-    activeSubject = "__ALL__";
-    renderChips(); renderTopics();
+    if(currentExam === 'DENEME'){
+      document.getElementById('topicPanel').style.display = 'none';
+      document.getElementById('plannerPanel').style.display = 'none';
+      document.getElementById('denemePanel').style.display = 'block';
+    } else {
+      document.getElementById('topicPanel').style.display = 'block';
+      document.getElementById('plannerPanel').style.display = 'block';
+      document.getElementById('denemePanel').style.display = 'none';
+      activeSubject = "__ALL__";
+      renderChips(); renderTopics();
+    }
   };
 });
 
@@ -468,18 +591,28 @@ function generatePlan(){
   return plan;
 }
 
-function renderPlan(plan){
+function dayIndexFromStart(startDateStr){
+  if(!startDateStr) return null;
+  const start = new Date(startDateStr+'T00:00:00');
+  const today = new Date();
+  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((todayMid - start) / (1000*60*60*24)) + 1;
+  return diffDays;
+}
+
+function renderPlan(plan, startDateStr){
   const out = document.getElementById('planOutput');
   out.innerHTML = '';
+  const todayIdx = dayIndexFromStart(startDateStr);
   const table = document.createElement('table');
   table.className = 'plan-table';
   table.innerHTML = `
-    <caption>Günlük Çalışma Çizelgesi</caption>
+    <caption>Günlük Çalışma Çizelgesi${startDateStr ? ' — Başlangıç: '+startDateStr : ''}</caption>
     <thead><tr><th>Gün</th><th>Tür</th><th>Yapılacaklar</th></tr></thead>
     <tbody>
       ${plan.map(p=>`
-        <tr class="${p.review?'review-row':''}">
-          <td class="day-cell">${p.day}. Gün</td>
+        <tr class="${p.review?'review-row':''} ${todayIdx===p.day?'today-row':''}">
+          <td class="day-cell">${p.day}. Gün ${todayIdx===p.day?'<span class="today-tag">BUGÜN</span>':''}</td>
           <td class="type-cell">${p.review?'Tekrar / Deneme':'Konu Çalışması'}</td>
           <td><ul>${p.items.map(i=>`<li>${i}</li>`).join('')}</ul></td>
         </tr>
@@ -496,8 +629,140 @@ function renderPlan(plan){
 
 document.getElementById('genPlanBtn').onclick = async ()=>{
   const plan = generatePlan();
-  renderPlan(plan);
-  try{ await window.storage.set('yks-plan', JSON.stringify(plan), false); }catch(e){}
+  const startDateStr = new Date().toISOString().slice(0,10);
+  renderPlan(plan, startDateStr);
+  try{ await window.storage.set('yks-plan', JSON.stringify({plan, startDateStr}), false); }catch(e){}
+  markActivity();
+};
+
+// ---- Deneme (mock exam) net tracker — TYT ve AYT ayrı ----
+let denemeler = { TYT: [], AYT: [] };
+let denemeSubExam = 'TYT';
+const DENEME_COLOR = { TYT: '#2C4A7C', AYT: '#B3392C' };
+const DENEME_MAX = { TYT: 120, AYT: 80 };
+
+async function loadDenemeler(){
+  try{
+    const d = await window.storage.get('yks-denemeler', false);
+    if(d){
+      const parsed = JSON.parse(d.value);
+      if(Array.isArray(parsed)){
+        // eski format: [{date, tyt, ayt}] -> ayır
+        const TYT = [], AYT = [];
+        parsed.forEach(e=>{
+          if(e.tyt !== null && e.tyt !== undefined) TYT.push({date:e.date, net:e.tyt});
+          if(e.ayt !== null && e.ayt !== undefined) AYT.push({date:e.date, net:e.ayt});
+        });
+        denemeler = { TYT, AYT };
+      } else {
+        denemeler = { TYT: parsed.TYT || [], AYT: parsed.AYT || [] };
+      }
+    }
+  }catch(e){}
+}
+async function saveDenemeler(){
+  try{ await window.storage.set('yks-denemeler', JSON.stringify(denemeler), false); }catch(e){}
+}
+
+document.querySelectorAll('#denemeSubTabs .chip').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('#denemeSubTabs .chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    denemeSubExam = btn.dataset.d;
+    document.getElementById('denemeNetLabel').textContent = denemeSubExam + ' Net';
+    document.getElementById('denemeNet').max = DENEME_MAX[denemeSubExam];
+    renderDenemeTable();
+    renderDenemeChart();
+  };
+});
+
+function renderDenemeTable(){
+  const wrap = document.getElementById('denemeTableWrap');
+  const list = denemeler[denemeSubExam];
+  if(!list || list.length===0){
+    wrap.innerHTML = `<div class="deneme-empty">Henüz ${denemeSubExam} denemesi eklenmedi.</div>`;
+    return;
+  }
+  const sorted = [...list].sort((a,b)=> a.date.localeCompare(b.date));
+  wrap.innerHTML = `
+    <table class="deneme-table">
+      <thead><tr><th>Tarih</th><th>${denemeSubExam} Net</th><th></th></tr></thead>
+      <tbody>
+        ${sorted.map(d=>`
+          <tr>
+            <td>${d.date}</td>
+            <td>${d.net}</td>
+            <td class="del-cell"><button class="del-btn" data-key="${d.date}|${d.net}">Sil</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  wrap.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const key = btn.dataset.key;
+      denemeler[denemeSubExam] = denemeler[denemeSubExam].filter(d => `${d.date}|${d.net}` !== key);
+      await saveDenemeler();
+      renderDenemeTable();
+      renderDenemeChart();
+    };
+  });
+}
+
+function renderDenemeChart(){
+  const wrap = document.getElementById('denemeChartWrap');
+  const list = denemeler[denemeSubExam];
+  const sorted = [...list].sort((a,b)=> a.date.localeCompare(b.date));
+  if(sorted.length < 2){
+    wrap.innerHTML = `<div class="deneme-empty">Grafik için en az 2 ${denemeSubExam} denemesi gerekiyor.</div>`;
+    return;
+  }
+  const W = 640, H = 220, padL = 34, padR = 14, padT = 14, padB = 26;
+  const vals = sorted.map(d=>d.net);
+  const maxV = Math.max(...vals, 10);
+  const n = sorted.length;
+  const xStep = n>1 ? (W-padL-padR)/(n-1) : 0;
+  const yScale = v => H-padB - (v/maxV)*(H-padT-padB);
+  const xScale = i => padL + i*xStep;
+  const color = DENEME_COLOR[denemeSubExam];
+
+  let path = '';
+  sorted.forEach((row,i)=>{
+    const x = xScale(i), y = yScale(row.net);
+    path += (i===0?'M ':' L ') + x.toFixed(1) + ' ' + y.toFixed(1);
+  });
+  const dots = sorted.map((row,i)=>`<circle cx="${xScale(i).toFixed(1)}" cy="${yScale(row.net).toFixed(1)}" r="3.5" fill="${color}"></circle>`).join('');
+  const gridLines = [0,0.25,0.5,0.75,1].map(f=>{
+    const y = H-padB - f*(H-padT-padB);
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="#D2DAE1" stroke-width="1"></line>
+            <text x="4" y="${(y+4).toFixed(1)}" font-size="10" fill="#4B5A6B">${Math.round(f*maxV)}</text>`;
+  }).join('');
+  const xLabels = sorted.map((row,i)=> i===0 || i===n-1 || n<=6 ?
+    `<text x="${xScale(i).toFixed(1)}" y="${H-8}" font-size="10" fill="#4B5A6B" text-anchor="middle">${row.date.slice(5)}</text>` : '').join('');
+
+  wrap.innerHTML = `
+    <div class="chart-wrap">
+      <div class="chart-legend"><span><i style="background:${color}"></i> ${denemeSubExam} Net</span></div>
+      <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">
+        ${gridLines}
+        <path d="${path}" fill="none" stroke="${color}" stroke-width="2"></path>
+        ${dots}
+        ${xLabels}
+      </svg>
+    </div>
+  `;
+}
+
+document.getElementById('addDenemeBtn').onclick = async ()=>{
+  const date = document.getElementById('denemeDate').value;
+  const netRaw = document.getElementById('denemeNet').value;
+  if(!date || !netRaw) return;
+  denemeler[denemeSubExam].push({ date, net: parseFloat(netRaw) });
+  await saveDenemeler();
+  document.getElementById('denemeNet').value = '';
+  renderDenemeTable();
+  renderDenemeChart();
+  markActivity();
 };
 
 // ---- Countdown ----
@@ -549,8 +814,17 @@ document.getElementById('saveDateBtn').onclick = async ()=>{
   renderTopics();
   try{
     const p = await window.storage.get('yks-plan', false);
-    if(p) renderPlan(JSON.parse(p.value));
+    if(p){
+      const parsed = JSON.parse(p.value);
+      if(Array.isArray(parsed)) renderPlan(parsed); // eski format uyumluluğu
+      else renderPlan(parsed.plan, parsed.startDateStr);
+    }
   }catch(e){}
+  await loadDenemeler();
+  renderDenemeTable();
+  renderDenemeChart();
+  updateStreakUI();
+  renderWeekSummary();
   try{
     const dstored = await window.storage.get('yks-exam-date', false);
     if(dstored){
